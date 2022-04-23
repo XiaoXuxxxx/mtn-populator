@@ -1,0 +1,19 @@
+{
+  "[0] Address": {
+    "[1] Branch": {
+      "[2] Zone": {
+        "[3] Staff": {},
+        "[3] Machine": {
+          "[4] MachinePart": {
+            "[5] MaintenanceLog": {
+              "[6] MaintenancePart": {}
+            },
+            "[5] Bill": {
+              "[6] Order": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

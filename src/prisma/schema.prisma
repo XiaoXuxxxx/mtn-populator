@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Address {
+  postal_code String   @id @db.VarChar(255)
+  region      String?  @db.VarChar(255)
+  country     String?  @db.VarChar(255)
+  Branch      Branch[]
+}
+
+model Bill {
+  bill_id    Int      @id @default(autoincrement())
+  store_name String   @db.VarChar(255)
+  bill_date  DateTime @db.DateTime(0)
+  order_by   Int
+  Staff      Staff    @relation(fields: [order_by], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "order_by_fk")
+  Order      Order[]
+
+  @@index([order_by], map: "order_by")
+}
+
+model Branch {
+  branch_id   Int     @id @default(autoincrement())
+  address     String  @db.VarChar(255)
+  postal_code String  @db.VarChar(255)
+  tel_no      String  @db.VarChar(255)
+  Address     Address @relation(fields: [postal_code], references: [postal_code], onDelete: NoAction, onUpdate: NoAction, map: "postal_code_fk")
+  Staff       Staff[]
+  Zone        Zone[]
+
+  @@index([postal_code], map: "postal_code")
+}
+
+model Machine {
+  machine_id                                  Int              @id @default(autoincrement())
+  zone_id                                     Int
+  name                                        String           @db.VarChar(255)
+  serial                                      String           @db.VarChar(255)
+  manufacturer                                String           @db.VarChar(255)
+  registration_date                           DateTime         @db.DateTime(0)
+  retired_date                                DateTime         @db.DateTime(0)
+  Zone                                        Zone             @relation(fields: [zone_id], references: [zone_id], onDelete: NoAction, onUpdate: NoAction, map: "zone_id_fk")
+  MachinePart_MachineToMachinePart_machine_id MachinePart[]    @relation("MachineToMachinePart_machine_id")
+  MaintenanceLog                              MaintenanceLog[]
+  Order                                       Order[]
+
+  @@index([zone_id], map: "zone_id")
+}
+
+model MachinePart {
+  part_id                                 Int               @id @default(autoincrement())
+  machine_id                              Int
+  part_name                               String            @db.VarChar(255)
+  status                                  String            @db.VarChar(255)
+  Machine_MachineToMachinePart_machine_id Machine           @relation("MachineToMachinePart_machine_id", fields: [machine_id], references: [machine_id], onDelete: NoAction, onUpdate: NoAction, map: "machine_id")
+  MaintenancePart                         MaintenancePart[]
+  Order                                   Order[]
+
+  @@index([machine_id], map: "machine_id")
+}
+
+model MaintenanceLog {
+  maintenance_id                            Int               @id @default(autoincrement())
+  machine_id                                Int
+  reporter_id                               Int?
+  maintainer_id                             Int?
+  report_date                               DateTime?         @db.DateTime(0)
+  maintenance_date                          DateTime?         @db.DateTime(0)
+  reason                                    String?           @db.VarChar(255)
+  status                                    String?           @db.VarChar(255)
+  Machine                                   Machine           @relation(fields: [machine_id], references: [machine_id], onDelete: NoAction, onUpdate: NoAction, map: "machine_id_fk_2")
+  Staff_MaintenanceLog_maintainer_idToStaff Staff?            @relation("MaintenanceLog_maintainer_idToStaff", fields: [maintainer_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "maintainer_id_fk")
+  Staff_MaintenanceLog_reporter_idToStaff   Staff?            @relation("MaintenanceLog_reporter_idToStaff", fields: [reporter_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "reporter_id_fk")
+  MaintenancePart                           MaintenancePart[]
+
+  @@index([machine_id], map: "machine_id")
+  @@index([maintainer_id], map: "maintainer_id")
+  @@index([reporter_id], map: "reporter_id")
+}
+
+model MaintenancePart {
+  maintenance_id Int            @default(autoincrement())
+  part_id        Int
+  type           String?        @db.VarChar(255)
+  status         String?        @db.VarChar(255)
+  order_id       Int?
+  MaintenanceLog MaintenanceLog @relation(fields: [maintenance_id], references: [maintenance_id], onDelete: NoAction, onUpdate: NoAction, map: "maintenance_id_fk")
+  Order          Order?         @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "order_id_fk")
+  MachinePart    MachinePart    @relation(fields: [part_id], references: [part_id], onDelete: NoAction, onUpdate: NoAction, map: "part_id_fk_3")
+
+  @@id([maintenance_id, part_id])
+  @@index([maintenance_id], map: "maintenance_id")
+  @@index([order_id], map: "order_id")
+  @@index([part_id], map: "part_id")
+}
+
+model Order {
+  order_id        Int               @id @default(autoincrement())
+  machine_id      Int?
+  part_id         Int?
+  bill_id         Int?
+  price           Float?
+  arrival_date    DateTime?         @db.DateTime(0)
+  status          String?           @db.VarChar(255)
+  Bill            Bill?             @relation(fields: [bill_id], references: [bill_id], onDelete: NoAction, onUpdate: NoAction, map: "bill_id_fk")
+  Machine         Machine?          @relation(fields: [machine_id], references: [machine_id], onDelete: NoAction, onUpdate: NoAction, map: "machine_id_fk")
+  MachinePart     MachinePart?      @relation(fields: [part_id], references: [part_id], onDelete: NoAction, onUpdate: NoAction, map: "part_id_fk_2")
+  MaintenancePart MaintenancePart[]
+
+  @@index([bill_id], map: "bill_id")
+  @@index([machine_id], map: "machine_id")
+  @@index([part_id], map: "part_id")
+}
+
+model Staff {
+  staff_id                                           Int              @id @default(autoincrement())
+  password                                           String           @db.VarChar(255)
+  full_name                                          String?          @db.VarChar(255)
+  branch_id                                          Int?
+  zone_id                                            Int?
+  tel_no                                             String?          @db.VarChar(255)
+  salary                                             Float?
+  position                                           String?          @db.VarChar(255)
+  dob                                                DateTime?        @db.DateTime(0)
+  Branch                                             Branch?          @relation(fields: [branch_id], references: [branch_id], onDelete: NoAction, onUpdate: NoAction, map: "bramch_id_fk")
+  Bill                                               Bill[]
+  MaintenanceLog_MaintenanceLog_maintainer_idToStaff MaintenanceLog[] @relation("MaintenanceLog_maintainer_idToStaff")
+  MaintenanceLog_MaintenanceLog_reporter_idToStaff   MaintenanceLog[] @relation("MaintenanceLog_reporter_idToStaff")
+
+  @@index([branch_id], map: "branch_id")
+}
+
+model Zone {
+  zone_id       Int       @id @default(autoincrement())
+  time_to_start DateTime? @db.DateTime(0)
+  time_to_end   DateTime? @db.Timestamp(0)
+  branch_id     Int
+  Branch        Branch    @relation(fields: [branch_id], references: [branch_id], onDelete: NoAction, onUpdate: NoAction, map: "branch_id_fk")
+  Machine       Machine[]
+
+  @@index([branch_id], map: "branch_id")
+}

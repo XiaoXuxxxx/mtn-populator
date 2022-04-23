@@ -1,0 +1,31 @@
+{
+  "name": "tsbp",
+  "scripts": {
+    "build": "tsc --build",
+    "bundle": "ncc build src/App.ts -m -o dist/_bundle",
+    "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules --respawn ./src/App.ts",
+    "start": "node --max-old-space-size=30000 dist/App.js",
+    "test": "jest --watch"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "@vercel/ncc": "^0.33.4",
+    "eslint": "^8.13.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "jest": "^27.5.1",
+    "prisma": "^3.12.0",
+    "ts-jest": "^27.1.4",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.3"
+  },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^6.1.2",
+    "@prisma/client": "^3.12.0"
+  }
+}
