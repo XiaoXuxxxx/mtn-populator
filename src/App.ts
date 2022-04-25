@@ -160,7 +160,7 @@ const generateStaffData = (
 ): Staff[] => {
   const staffData: Staff[] = [];
 
-  let currentStaffId = 0;
+  let currentStaffId = 1;
 
   zoneData.forEach((zone, zoneIndex) => {
     const staffAmount = Math.floor(
@@ -169,7 +169,7 @@ const generateStaffData = (
       + staffAmountPerZoneRange[0],
     );
 
-    for (let i = 1; i <= staffAmount; i += 1) {
+    for (let i = 0; i < staffAmount; i += 1) {
       const selectedPositionIndex = Math.floor(Math.random() * Object.keys(StaffPosition).length);
       const selectedPosition = Object.values(StaffPosition)[selectedPositionIndex];
 
@@ -185,7 +185,7 @@ const generateStaffData = (
         branch_id: zone.branch_id,
         zone_id: zone.zone_id,
       };
-      console.log(`[3/10][ZONE: ${zoneIndex}/${zoneData.length}][Staff: ${i}/${staffAmount}] staff_id: ${currentStaffId} password: ${plainPassword}`);
+      console.log(`[3/10][ZONE: ${zoneIndex}/${zoneData.length}][Staff: ${i + 1}/${staffAmount}] staff_id: ${currentStaffId} password: ${plainPassword}`);
       staffData.push(staff);
       currentStaffId += 1;
     }
@@ -602,7 +602,6 @@ const generateMaintenancePartData = (
     machinePartListByMachineId.set(machinePart.machine_id, machinePartList);
   });
 
-  let currentMaintenancePartId = 0;
   const usedOrderIdList: (number | undefined)[] = [];
   // generate maintenancePart in pending maintenanceLog
   maintenanceLogData.forEach((maintenanceLog) => {
@@ -629,7 +628,7 @@ const generateMaintenancePartData = (
     }
 
     const maintenancePart: MaintenancePart = {
-      maintenance_id: currentMaintenancePartId += 1,
+      maintenance_id: maintenanceLog.maintenance_id,
       order_id: selectedOrder.order_id,
       part_id: selectedOrder.part_id,
       type: String(Math.random()),
@@ -687,37 +686,30 @@ const main = async () => {
   const generateOrderForPendingMaintenanceLogRate: number = 0.8;
   const generateOrderPerBillRange: [fromRange: number, toRange: number] = [1, 10];
 
-  // const postalCount: number = 10;
-  // const regionCount: number = 5;
-  // const countryCount: number = 2;
-  // const branchCount: number = 100;
-  // const zoneAmountPerBranchRange: [fromRange: number, toRange: number] = [10, 20];
-  // const staffAmountPerZoneRange: [fromRange: number, toRange: number] = [20, 200];
-  // const machineAmountPerZoneRange: [fromRange: number, toRange: number] = [10, 20];
-  // const partAmountPerMachineRange: [fromRange: number, toRange: number] = [2, 10];
-  // const partBrokenRate: number = 0.01;
-  // const generatedPastMaintenanceRate: number = 0.3;
-  // const amountOfMaintenancePerMachineRange: [fromRange: number, toRange: number] = [20, 40];
-  // const failedRateForPastMaintenance: number = 0.1;
-  // const pendingRateForCurrentMaintenance: number = 0.5;
-  // const billAmountPerBranchRange: [fromRange: number, toRange: number] = [40, 60];
-  // const generateOrderForPendingMaintenanceLogRate: number = 0.8;
-  // const generateOrderPerBillRange: [fromRange: number, toRange: number] = [2, 10];
-
   const prisma = new PrismaClient();
+
+  /**
+  * generate data in local
+  */
 
   const addressData = generateAddressData(postalCount, regionCount, countryCount);
   console.log(`[gen][1/10] generate address data successfully (${addressData.length} rows)`);
+
   const branchData = generateBranchData(addressData, branchCount);
   console.log(`[gen][2/10] generate branch data successfully (${branchData.length} rows)`);
+
   const zoneData = generateZoneData(branchData, zoneAmountPerBranchRange);
   console.log(`[gen][3/10] generate zone data successfully (${zoneData.length} rows)`);
+
   const staffData = generateStaffData(zoneData, staffAmountPerZoneRange);
   console.log(`[gen][4/10] generate staff data successfully (${staffData.length} rows)`);
+
   const machineData = generateMachineData(zoneData, machineAmountPerZoneRange);
   console.log(`[gen][5/10] generate machine data successfully (${machineData.length} rows)`);
+
   const machinePartData = generateMachinePartData(machineData, partAmountPerMachineRange, partBrokenRate);
   console.log(`[gen][6/10] generate machinePart data successfully (${machinePartData.length} rows)`);
+
   const maintenanceLogData = generateMaintenanceLogData(
     machineData,
     machinePartData,
@@ -749,48 +741,75 @@ const main = async () => {
   );
   console.log(`[gen][10/10] generate maintenancePart data successfully (${maintenancePartData.length} rows)`);
 
+  /**
+  * cleaning existing data in database
+  */
+
   const maintenancePartDeletedCount = await prisma.maintenancePart.deleteMany({});
   console.log(`[del][1/11] delete maintenancePart data successfully (${maintenancePartDeletedCount.count} rows)`);
+
   const orderDeletedCount = await prisma.order.deleteMany({});
   console.log(`[del][2/11] delete order data successfully (${orderDeletedCount} rows)`);
+
   const billDeletedCount = await prisma.bill.deleteMany({});
   console.log(`[del][3/11] delete bill data successfully (${billDeletedCount} rows)`);
+
   const maintenanceLogDeletedCount = await prisma.maintenanceLog.deleteMany({});
   console.log(`[del][4/11] delete maintenanceLog data successfully (${maintenanceLogDeletedCount.count} rows)`);
+
   const machinePartDeletedCount = await prisma.machinePart.deleteMany({});
   console.log(`[del][5/11] delete machinePart data successfully (${machinePartDeletedCount.count} rows)`);
+
   const machineDeletedCount = await prisma.machine.deleteMany({});
   console.log(`[del][6/11] delete machine data successfully (${machineDeletedCount.count} rows)`);
+
   const staffDeletedCount = await prisma.staff.deleteMany({});
   console.log(`[del][7/11] delete staff data successfully (${staffDeletedCount.count} rows)`);
+
   const zoneDeletedCount = await prisma.zone.deleteMany({});
   console.log(`[del][8/11] delete zone data successfully (${zoneDeletedCount.count} rows)`);
+
   const branchDeletedCount = await prisma.branch.deleteMany({});
   console.log(`[del][9/11] delete branch data successfully (${branchDeletedCount.count} rows)`);
+
   const addressDeletedCount = await prisma.address.deleteMany({});
   console.log(`[del][10/11] delete address data successfully (${addressDeletedCount.count} rows)`);
+
   const sessionDeletedCount = await prisma.session.deleteMany({});
   console.log(`[del][11/11] delete session data successfully (${sessionDeletedCount.count} rows)`);
 
-  const addressDataCount = await prisma.address.createMany({ data: addressData }).catch(() => { });
+  /**
+  * pushing generated data to database
+  */
+
+  const addressDataCount = await prisma.address.createMany({ data: addressData });
   console.log(`[ins][1/10] insert address data successfully (${addressDataCount?.count} rows)`);
-  const branchDataCount = await prisma.branch.createMany({ data: branchData }).catch(() => { });
+
+  const branchDataCount = await prisma.branch.createMany({ data: branchData });
   console.log(`[ins][2/10] insert branch data successfully (${branchDataCount?.count} rows)`);
-  const zoneDataCount = await prisma.zone.createMany({ data: zoneData }).catch(() => { });
+
+  const zoneDataCount = await prisma.zone.createMany({ data: zoneData });
   console.log(`[ins][3/10] insert zone data successfully (${zoneDataCount?.count} rows)`);
-  const staffDataCount = await prisma.staff.createMany({ data: staffData }).catch(() => { });
+
+  const staffDataCount = await prisma.staff.createMany({ data: staffData });
   console.log(`[ins][4/10] insert staff data successfully (${staffDataCount?.count} rows)`);
-  const machineDataCount = await prisma.machine.createMany({ data: machineData }).catch(() => { });
+
+  const machineDataCount = await prisma.machine.createMany({ data: machineData });
   console.log(`[ins][5/10] insert machine data successfully (${machineDataCount?.count} rows)`);
-  const machinePartDataCount = await prisma.machinePart.createMany({ data: machinePartData }).catch(() => { });
+
+  const machinePartDataCount = await prisma.machinePart.createMany({ data: machinePartData });
   console.log(`[ins][6/10] insert machinePart data successfully (${machinePartDataCount?.count} rows)`);
-  const maintenanceLogDataCount = await prisma.maintenanceLog.createMany({ data: maintenanceLogData }).catch(() => { });
+
+  const maintenanceLogDataCount = await prisma.maintenanceLog.createMany({ data: maintenanceLogData });
   console.log(`[ins][7/10] insert maintenanceLog data successfully (${maintenanceLogDataCount?.count} rows)`);
-  const billDataCount = await prisma.bill.createMany({ data: billData }).catch(() => { });
+
+  const billDataCount = await prisma.bill.createMany({ data: billData });
   console.log(`[ins][8/10] insert bill data successfully (${billDataCount?.count} rows)`);
-  const orderDataCount = await prisma.order.createMany({ data: orderData }).catch(() => { });
+
+  const orderDataCount = await prisma.order.createMany({ data: orderData });
   console.log(`[ins][9/10] insert order data successfully (${orderDataCount?.count} rows)`);
-  const maintenancePartDataCount = await prisma.maintenancePart.createMany({ data: maintenancePartData }).catch(() => { });
+
+  const maintenancePartDataCount = await prisma.maintenancePart.createMany({ data: maintenancePartData });
   console.log(`[ins][10/10] insert maintenancePart data successfully (${maintenancePartDataCount?.count} rows)`);
 };
 
