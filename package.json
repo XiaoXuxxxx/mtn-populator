@@ -1,13 +1,14 @@
 {
-  "name": "tsbp",
+  "name": "mtn-populator",
   "scripts": {
     "build": "tsc --build",
     "bundle": "ncc build src/App.ts -m -o dist/_bundle",
     "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules --respawn ./src/App.ts",
-    "start": "node --max-old-space-size=30000 dist/App.js",
+    "start": "node dist/App.js",
     "test": "jest --watch"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/jest": "^27.4.1",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
@@ -26,6 +27,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^6.1.2",
-    "@prisma/client": "^3.12.0"
+    "@prisma/client": "^3.12.0",
+    "bcrypt": "^5.0.1"
   }
 }

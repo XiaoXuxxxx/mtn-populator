@@ -14,7 +14,7 @@ create `.env` file at the root of the project
 
 example of .env file
 
-```.env
+```plaintext
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_USER=root
@@ -36,9 +36,7 @@ docker-compose -p my-services up -d
 
 This will run the services and the port will exposed at `3306` for mysql, `6379` for redis and you can access phpmyadmin at [http://localhost:8080](http://localhost:8080)
 
-## generate data and write them to database
-
-### installing dependencies
+## installing dependencies
 
 install dependencies by typing this command
 
@@ -46,23 +44,25 @@ install dependencies by typing this command
 yarn
 ```
 
-### doing Prisma things
+## push the database structure to db
 
-create the table (if you don't have any table in your database)
+In case if your database don't have any tablle yet.
+
+add this line to .env file (for more information [Prisma connection url](https://www.prisma.io/docs/concepts/database-connectors/mysql#connection-details))
+
+```plaintext
+DATABASE_URL="mysql://root:root@localhost:3306/mod-tham-ngarn"
+```
+
+then type this command
 
 ```sh
 yarn prisma db push
 ```
 
-generate type for typescript by typing
+## generate data and push it to db
 
-```sh
-yarn prisma generate
-```
-
-### generate data and push it to db
-
-and then build project
+just build it and run it
 
 ```sh
 yarn build
@@ -72,4 +72,18 @@ and then start
 
 ```sh
 yarn start
+```
+
+## development
+
+generate type for typescript by typing
+
+```sh
+yarn prisma generate
+```
+
+run for development
+
+```sh
+yarn dev
 ```

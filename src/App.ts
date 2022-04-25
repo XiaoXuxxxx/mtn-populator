@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 import { faker } from '@faker-js/faker';
+import bcrypt from 'bcrypt';
+
 import {
   PrismaClient,
   Address,
@@ -156,25 +158,25 @@ const generateStaffData = (
   zoneData: Zone[],
   staffAmountPerZoneRange: [fromRange: number, toRange: number],
 ): Staff[] => {
-  // const position = ['user', 'technician', 'purchaser', 'manager', 'admin'];
   const staffData: Staff[] = [];
 
   let currentStaffId = 0;
 
-  zoneData.forEach((zone) => {
+  zoneData.forEach((zone, zoneIndex) => {
     const staffAmount = Math.floor(
       Math.random()
       * (staffAmountPerZoneRange[1] - staffAmountPerZoneRange[0] + 1)
       + staffAmountPerZoneRange[0],
     );
 
-    for (let i = 0; i < staffAmount; i += 1) {
+    for (let i = 1; i <= staffAmount; i += 1) {
       const selectedPositionIndex = Math.floor(Math.random() * Object.keys(StaffPosition).length);
       const selectedPosition = Object.values(StaffPosition)[selectedPositionIndex];
 
+      const plainPassword = `${'0'.repeat(String(currentStaffId).length < 8 ? 8 - String(currentStaffId).length : 0)}${String(currentStaffId)}`;
       const staff: Staff = {
-        staff_id: currentStaffId += 1,
-        password: faker.internet.password(),
+        password: bcrypt.hashSync(plainPassword, 10),
+        staff_id: currentStaffId,
         dob: faker.date.past(),
         full_name: `${faker.name.firstName()} ${faker.name.lastName()}`,
         tel_no: faker.phone.phoneNumber(),
@@ -183,7 +185,9 @@ const generateStaffData = (
         branch_id: zone.branch_id,
         zone_id: zone.zone_id,
       };
+      console.log(`[3/10][ZONE: ${zoneIndex}/${zoneData.length}][Staff: ${i}/${staffAmount}] staff_id: ${currentStaffId} password: ${plainPassword}`);
       staffData.push(staff);
+      currentStaffId += 1;
     }
   });
 
@@ -666,10 +670,10 @@ const generateMaintenancePartData = (
 };
 
 const main = async () => {
-  const postalCount: number = 100;
-  const regionCount: number = 10;
-  const countryCount: number = 2;
-  const branchCount: number = 200;
+  const postalCount: number = 3;
+  const regionCount: number = 2;
+  const countryCount: number = 1;
+  const branchCount: number = 5;
   const zoneAmountPerBranchRange: [fromRange: number, toRange: number] = [3, 5];
   const staffAmountPerZoneRange: [fromRange: number, toRange: number] = [30, 50];
   const machineAmountPerZoneRange: [fromRange: number, toRange: number] = [3, 5];
@@ -746,25 +750,27 @@ const main = async () => {
   console.log(`[gen][10/10] generate maintenancePart data successfully (${maintenancePartData.length} rows)`);
 
   const maintenancePartDeletedCount = await prisma.maintenancePart.deleteMany({});
-  console.log(`[del][1/10] delete maintenancePart data successfully (${maintenancePartDeletedCount.count} rows)`);
+  console.log(`[del][1/11] delete maintenancePart data successfully (${maintenancePartDeletedCount.count} rows)`);
   const orderDeletedCount = await prisma.order.deleteMany({});
-  console.log(`[del][2/10] delete order data successfully (${orderDeletedCount} rows)`);
+  console.log(`[del][2/11] delete order data successfully (${orderDeletedCount} rows)`);
   const billDeletedCount = await prisma.bill.deleteMany({});
-  console.log(`[del][3/10] delete bill data successfully (${billDeletedCount} rows)`);
+  console.log(`[del][3/11] delete bill data successfully (${billDeletedCount} rows)`);
   const maintenanceLogDeletedCount = await prisma.maintenanceLog.deleteMany({});
-  console.log(`[del][4/10] delete maintenanceLog data successfully (${maintenanceLogDeletedCount.count} rows)`);
+  console.log(`[del][4/11] delete maintenanceLog data successfully (${maintenanceLogDeletedCount.count} rows)`);
   const machinePartDeletedCount = await prisma.machinePart.deleteMany({});
-  console.log(`[del][5/10] delete machinePart data successfully (${machinePartDeletedCount.count} rows)`);
+  console.log(`[del][5/11] delete machinePart data successfully (${machinePartDeletedCount.count} rows)`);
   const machineDeletedCount = await prisma.machine.deleteMany({});
-  console.log(`[del][6/10] delete machine data successfully (${machineDeletedCount.count} rows)`);
+  console.log(`[del][6/11] delete machine data successfully (${machineDeletedCount.count} rows)`);
   const staffDeletedCount = await prisma.staff.deleteMany({});
-  console.log(`[del][7/10] delete staff data successfully (${staffDeletedCount.count} rows)`);
+  console.log(`[del][7/11] delete staff data successfully (${staffDeletedCount.count} rows)`);
   const zoneDeletedCount = await prisma.zone.deleteMany({});
-  console.log(`[del][8/10] delete zone data successfully (${zoneDeletedCount.count} rows)`);
+  console.log(`[del][8/11] delete zone data successfully (${zoneDeletedCount.count} rows)`);
   const branchDeletedCount = await prisma.branch.deleteMany({});
-  console.log(`[del][9/10] delete branch data successfully (${branchDeletedCount.count} rows)`);
+  console.log(`[del][9/11] delete branch data successfully (${branchDeletedCount.count} rows)`);
   const addressDeletedCount = await prisma.address.deleteMany({});
-  console.log(`[del][10/10] delete address data successfully (${addressDeletedCount.count} rows)`);
+  console.log(`[del][10/11] delete address data successfully (${addressDeletedCount.count} rows)`);
+  const sessionDeletedCount = await prisma.session.deleteMany({});
+  console.log(`[del][11/11] delete session data successfully (${sessionDeletedCount.count} rows)`);
 
   const addressDataCount = await prisma.address.createMany({ data: addressData }).catch(() => { });
   console.log(`[ins][1/10] insert address data successfully (${addressDataCount?.count} rows)`);
@@ -784,7 +790,6 @@ const main = async () => {
   console.log(`[ins][8/10] insert bill data successfully (${billDataCount?.count} rows)`);
   const orderDataCount = await prisma.order.createMany({ data: orderData }).catch(() => { });
   console.log(`[ins][9/10] insert order data successfully (${orderDataCount?.count} rows)`);
-
   const maintenancePartDataCount = await prisma.maintenancePart.createMany({ data: maintenancePartData }).catch(() => { });
   console.log(`[ins][10/10] insert maintenancePart data successfully (${maintenancePartDataCount?.count} rows)`);
 };

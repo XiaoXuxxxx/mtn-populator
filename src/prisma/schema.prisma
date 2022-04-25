@@ -71,9 +71,9 @@ model MaintenanceLog {
   reporter_id                               Int?
   maintainer_id                             Int?
   report_date                               DateTime?         @db.DateTime(0)
-  maintenance_date                          DateTime?         @db.DateTime(0)
   reason                                    String?           @db.VarChar(255)
   status                                    String?           @db.VarChar(255)
+  maintenance_date                          DateTime?         @db.DateTime(0)
   Machine                                   Machine           @relation(fields: [machine_id], references: [machine_id], onDelete: NoAction, onUpdate: NoAction, map: "machine_id_fk_2")
   Staff_MaintenanceLog_maintainer_idToStaff Staff?            @relation("MaintenanceLog_maintainer_idToStaff", fields: [maintainer_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "maintainer_id_fk")
   Staff_MaintenanceLog_reporter_idToStaff   Staff?            @relation("MaintenanceLog_reporter_idToStaff", fields: [reporter_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "reporter_id_fk")
@@ -145,4 +145,10 @@ model Zone {
   Machine       Machine[]
 
   @@index([branch_id], map: "branch_id")
+}
+
+model Session {
+  session_id  String   @id @db.VarChar(255)
+  staff_id    Int
+  expiry_date DateTime @db.DateTime(0)
 }
